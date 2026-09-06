@@ -298,6 +298,7 @@
 
 'use client'
 import { useEffect, useState, useRef } from 'react'
+import { useSession } from 'next-auth/react'
 
 type Road = { id: string; name: string }
 type MyReport = {
@@ -321,6 +322,7 @@ export default function ReportForm() {
   const [success, setSuccess] = useState(false)
   const [myReports, setMyReports] = useState<MyReport[]>([])
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { data: session } = useSession()
 
   useEffect(() => {
     fetch('/api/roads').then(r => r.json()).then(setRoads)
@@ -372,7 +374,8 @@ export default function ReportForm() {
     await fetch('/api/reports', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ roadId, severity, description, imageUrl })
+      // body: JSON.stringify({ roadId, severity, description, imageUrl })
+      body: JSON.stringify({ roadId, severity, description, imageUrl, userId: (session?.user as any)?.id })
     })
 
     setLoading(false)

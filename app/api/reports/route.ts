@@ -97,7 +97,6 @@
 
 //   return NextResponse.json(report)
 // }
-
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
@@ -106,7 +105,7 @@ export async function POST(req: Request) {
   const session = await auth()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { roadId, severity, description, imageUrl } = await req.json()
+  const { roadId, severity, description, imageUrl, userId } = await req.json()
 
   const report = await prisma.report.create({
     data: {
@@ -114,6 +113,7 @@ export async function POST(req: Request) {
       severity,
       description,
       imageUrl: imageUrl || null,
+      userId: userId || null,
       status: 'PENDING'
     }
   })

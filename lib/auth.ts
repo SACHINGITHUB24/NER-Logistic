@@ -41,6 +41,7 @@
 //   secret: process.env.NEXTAUTH_SECRET
 // }
 
+
 import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { prisma } from './prisma'
@@ -67,13 +68,20 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
   ],
   callbacks: {
     jwt({ token, user }) {
-      if (user) token.role = (user as any).role
+      if (user) {
+        token.role = (user as any).role
+        token.id = user.id       
+      }
       return token
     },
-    session({ session, token }) {
-      if (session.user) (session.user as any).role = token.role
-      return session
-    }
+   session({ session, token }) {
+  if (session.user) {
+    const u = session.user as any
+    u.role = token.role || null
+    u.id = token.sub
+  }
+  return session
+}
   },
   pages: {
     signIn: '/login'

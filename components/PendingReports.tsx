@@ -141,6 +141,16 @@
 'use client'
 import { useEffect, useState } from 'react'
 
+// type Report = {
+//   id: string
+//   severity: string
+//   description: string
+//   status: string
+//   createdAt: string
+//   road: { name: string }
+//   imageUrl?: string
+// }
+
 type Report = {
   id: string
   severity: string
@@ -149,6 +159,7 @@ type Report = {
   createdAt: string
   road: { name: string }
   imageUrl?: string
+  user?: { name?: string; email: string } | null
 }
 
 function timeAgo(dateStr: string) {
@@ -223,6 +234,30 @@ setLoading(null)
               fontSize: '0.7rem', padding: '2px 8px', borderRadius: '99px', fontWeight: 600
             }}>{report.severity}</span>
           </div>
+          {report.user && (
+  <div style={{
+    display: 'flex', alignItems: 'center', gap: '10px',
+    background: '#ffffff08', borderRadius: '6px',
+    padding: '5px 8px', marginBottom: '6px'
+  }}>
+    <div style={{
+      width: '26px', height: '26px', borderRadius: '50%',
+      background: 'linear-gradient(135deg, #0ea5e9, #0369a1)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      fontSize: '0.7rem', fontWeight: 700, color: '#fff', flexShrink: 0
+    }}>
+      {(report.user.name || report.user.email)[0].toUpperCase()}
+    </div>
+    <div>
+      {report.user.name && (
+        <div style={{ color: '#f1f5f9', fontSize: '0.78rem', fontWeight: 600 }}>
+          {report.user.name}
+        </div>
+      )}
+      <div style={{ color: '#475569', fontSize: '0.72rem' }}>{report.user.email}</div>
+    </div>
+  </div>
+)}
           <p style={{ color: '#64748b', fontSize: '0.8rem', margin: '0 0 8px' }}>{report.description}</p>
           {report.imageUrl && (
   <img
