@@ -80,67 +80,351 @@
 // }
 
 
+// 'use client'
+// import { useEffect, useState } from 'react'
+
+// type Alert = {
+//   id: string
+//   message: string
+//   createdAt: string
+//   road: { name: string; status: string }
+//   district: { name: string }
+// }
+
+// function timeAgo(dateStr: string) {
+//   const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
+//   if (diff < 60) return `${diff}s ago`
+//   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+//   return `${Math.floor(diff / 3600)}h ago`
+// }
+
+// export default function AlertPanel() {
+//   const [alerts, setAlerts] = useState<Alert[]>([])
+
+//   // useEffect(() => {
+//   //   const fetch_ = async () => {
+//   //     const res = await fetch('/api/alerts')
+//   //     setAlerts(await res.json())
+//   //   }
+//   //   fetch_()
+//   //   const interval = setInterval(fetch_, 5000)
+//   //   return () => clearInterval(interval)
+//   // }, [])
+
+
+//   useEffect(() => {
+//   let cancelled = false
+
+//   const fetchAlerts = async () => {
+//     try {
+//       const res = await fetch('/api/alerts', {
+//         cache: 'no-store'
+//       })
+
+//       if (!res.ok) {
+//         throw new Error('Failed to fetch alerts')
+//       }
+
+//       const data = await res.json()
+
+//       if (!cancelled) {
+//         setAlerts(data)
+//       }
+//     } catch (error) {
+//       console.error('Live alerts error:', error)
+//     }
+//   }
+
+//   fetchAlerts()
+
+//   const interval = setInterval(fetchAlerts, 3000)
+
+//   return () => {
+//     cancelled = true
+//     clearInterval(interval)
+//   }
+// }, [])
+
+//   return (
+//     <div style={{ borderBottom: '1px solid #1e293b', padding: '1rem' }}>
+//       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.75rem' }}>
+//         <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+//           Live alerts
+//         </span>
+//         <span style={{ width: '6px', height: '6px', background: '#ef4444', borderRadius: '50%', display: 'inline-block', animation: 'pulse 2s infinite' }}></span>
+//       </div>
+
+//       {alerts.length === 0 ? (
+//         <p style={{ color: '#334155', fontSize: '0.82rem', margin: 0 }}>No active alerts</p>
+//       ) : alerts.map(alert => {
+//         const isNew = (Date.now() - new Date(alert.createdAt).getTime()) < 600000
+//         return (
+//           <div key={alert.id} style={{
+//             padding: '0.6rem 0',
+//             borderBottom: '1px solid #1e293b'
+//           }}>
+//             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+//               <span style={{ color: '#f1f5f9', fontSize: '0.82rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+//                 {isNew && <span style={{ width: '6px', height: '6px', background: '#ef4444', borderRadius: '50%', display: 'inline-block' }}></span>}
+//                 {alert.road.name}
+//               </span>
+//               <span style={{ color: '#475569', fontSize: '0.72rem' }}>{timeAgo(alert.createdAt)}</span>
+//             </div>
+//             <p style={{ color: '#64748b', fontSize: '0.78rem', margin: '0 0 2px' }}>{alert.message}</p>
+//             <span style={{ color: '#0ea5e9', fontSize: '0.72rem' }}>📍 {alert.district.name}</span>
+//           </div>
+//         )
+//       })}
+//     </div>
+//   )
+// }
+
 'use client'
+
 import { useEffect, useState } from 'react'
 
 type Alert = {
   id: string
   message: string
   createdAt: string
-  road: { name: string; status: string }
-  district: { name: string }
+  road: {
+    name: string
+    status: string
+  }
+  district: {
+    name: string
+  }
 }
 
 function timeAgo(dateStr: string) {
-  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000)
-  if (diff < 60) return `${diff}s ago`
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
+  const diff = Math.floor(
+    (Date.now() - new Date(dateStr).getTime()) / 1000
+  )
+
+  if (diff < 60) {
+    return `${diff}s ago`
+  }
+
+  if (diff < 3600) {
+    return `${Math.floor(diff / 60)}m ago`
+  }
+
   return `${Math.floor(diff / 3600)}h ago`
 }
 
 export default function AlertPanel() {
+
   const [alerts, setAlerts] = useState<Alert[]>([])
+  const [error, setError] = useState(false)
+
+  const fetchAlerts = async () => {
+
+    try {
+
+      const res = await fetch(
+        `/api/alerts?t=${Date.now()}`,
+        {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        }
+      )
+
+      if (!res.ok) {
+        throw new Error('Failed to load alerts')
+      }
+
+      const data = await res.json()
+
+      if (Array.isArray(data)) {
+        setAlerts(data)
+        setError(false)
+      }
+
+    } catch (err) {
+
+      console.error(
+        'LIVE ALERTS ERROR:',
+        err
+      )
+
+      setError(true)
+    }
+  }
 
   useEffect(() => {
-    const fetch_ = async () => {
-      const res = await fetch('/api/alerts')
-      setAlerts(await res.json())
+
+    fetchAlerts()
+
+    const interval = setInterval(
+      fetchAlerts,
+      3000
+    )
+
+    return () => {
+      clearInterval(interval)
     }
-    fetch_()
-    const interval = setInterval(fetch_, 5000)
-    return () => clearInterval(interval)
+
   }, [])
 
   return (
-    <div style={{ borderBottom: '1px solid #1e293b', padding: '1rem' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '0.75rem' }}>
-        <span style={{ color: '#94a3b8', fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+    <div
+      style={{
+        borderBottom:
+          '1px solid #1e293b',
+        padding: '1rem'
+      }}
+    >
+
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '0.75rem'
+        }}
+      >
+
+        <span
+          style={{
+            color: '#94a3b8',
+            fontSize: '0.75rem',
+            fontWeight: 600,
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase'
+          }}
+        >
           Live alerts
         </span>
-        <span style={{ width: '6px', height: '6px', background: '#ef4444', borderRadius: '50%', display: 'inline-block', animation: 'pulse 2s infinite' }}></span>
+
+        <span
+          style={{
+            width: '6px',
+            height: '6px',
+            background: '#ef4444',
+            borderRadius: '50%',
+            display: 'inline-block',
+            animation: 'pulse 2s infinite'
+          }}
+        />
+
       </div>
 
-      {alerts.length === 0 ? (
-        <p style={{ color: '#334155', fontSize: '0.82rem', margin: 0 }}>No active alerts</p>
-      ) : alerts.map(alert => {
-        const isNew = (Date.now() - new Date(alert.createdAt).getTime()) < 600000
+      {error && (
+        <p
+          style={{
+            color: '#ef4444',
+            fontSize: '0.78rem'
+          }}
+        >
+          Unable to load live alerts
+        </p>
+      )}
+
+      {!error && alerts.length === 0 && (
+        <p
+          style={{
+            color: '#334155',
+            fontSize: '0.82rem',
+            margin: 0
+          }}
+        >
+          No active alerts
+        </p>
+      )}
+
+      {alerts.map(alert => {
+
+        const isNew =
+          Date.now() -
+          new Date(alert.createdAt).getTime()
+          < 600000
+
         return (
-          <div key={alert.id} style={{
-            padding: '0.6rem 0',
-            borderBottom: '1px solid #1e293b'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
-              <span style={{ color: '#f1f5f9', fontSize: '0.82rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                {isNew && <span style={{ width: '6px', height: '6px', background: '#ef4444', borderRadius: '50%', display: 'inline-block' }}></span>}
+          <div
+            key={alert.id}
+            style={{
+              padding: '0.7rem 0',
+              borderBottom:
+                '1px solid #1e293b'
+            }}
+          >
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent:
+                  'space-between',
+                marginBottom: '3px'
+              }}
+            >
+
+              <span
+                style={{
+                  color: '#f1f5f9',
+                  fontSize: '0.82rem',
+                  fontWeight: 600
+                }}
+              >
+
+                {isNew && (
+                  <span
+                    style={{
+                      display:
+                        'inline-block',
+                      width: '6px',
+                      height: '6px',
+                      background:
+                        '#ef4444',
+                      borderRadius:
+                        '50%',
+                      marginRight: '6px'
+                    }}
+                  />
+                )}
+
                 {alert.road.name}
+
               </span>
-              <span style={{ color: '#475569', fontSize: '0.72rem' }}>{timeAgo(alert.createdAt)}</span>
+
+              <span
+                style={{
+                  color: '#475569',
+                  fontSize: '0.72rem'
+                }}
+              >
+                {timeAgo(
+                  alert.createdAt
+                )}
+              </span>
+
             </div>
-            <p style={{ color: '#64748b', fontSize: '0.78rem', margin: '0 0 2px' }}>{alert.message}</p>
-            <span style={{ color: '#0ea5e9', fontSize: '0.72rem' }}>📍 {alert.district.name}</span>
+
+            <p
+              style={{
+                color: '#94a3b8',
+                fontSize: '0.78rem',
+                margin:
+                  '0 0 4px'
+              }}
+            >
+              {alert.message}
+            </p>
+
+            <span
+              style={{
+                color: '#0ea5e9',
+                fontSize: '0.72rem'
+              }}
+            >
+              📍 {alert.district.name}
+            </span>
+
           </div>
         )
       })}
+
     </div>
   )
 }

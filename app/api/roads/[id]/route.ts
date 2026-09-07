@@ -29,12 +29,57 @@ export async function PATCH(
     }
   }
 
-  if (action === 'REMOVE_REROUTING') {
-    await prisma.road.update({
-      where: { id },
-      data: { reroutingActive: false }
+  // if (action === 'REMOVE_REROUTING') {
+  //   await prisma.road.update({
+  //     where: { id },
+  //     data: { reroutingActive: false }
+  //   })
+  // }
+ if (action === 'REMOVE_REROUTING') {
+
+  // Get road information first
+  const road = await prisma.road.findUnique({
+    where: { id }
+  })
+
+  if (!road) {
+    return NextResponse.json(
+      { error: 'Road not found' },
+      { status: 404 }
+    )
+  }
+
+  // Disable rerouting and reopen the road
+  await prisma.road.update({
+    where: { id },
+    data: {
+      status: 'CLEAR',
+      riskScore: 0,
+      reroutingActive: false
+    }
+  })
+
+  // Find the affected district
+  const district = await prisma.district.findFirst({
+    where: {
+      primaryRoadId: id
+    }
+  })
+
+  // Create a LIVE ALERT
+  if (district) {
+    await prisma.alert.create({
+      data: {
+        roadId: id,
+        districtId: district.id,
+        message:
+          `🟢 ROAD OPENED: ${road.name} — ` +
+          `Rerouting deactivated. Normal route restored.`
+      }
     })
   }
+
+}
 
   if (action === 'ACTIVATE_REROUTING') {
     await prisma.road.update({
