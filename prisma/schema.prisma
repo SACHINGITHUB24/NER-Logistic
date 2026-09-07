@@ -1,107 +1,3 @@
-// generator client {
-//   provider = "prisma-client-js"
-// }
-
-// datasource db {
-//   provider = "postgresql"
-//   url      = env("DATABASE_URL")
-// }
-
-// model User {
-//   id        String   @id @default(cuid())
-//   email     String   @unique
-//   password  String
-//   role      Role     @default(CITIZEN)
-//   createdAt DateTime @default(now())
-// }
-
-// model Road {
-//   id               String   @id @default(cuid())
-//   name             String
-//   fromDistrict     String
-//   toDistrict       String
-//   riskScore        Int      @default(0)
-//   status           Status   @default(CLEAR)
-//   alternateRouteId String?
-//   geometry         Json
-//   reports          Report[]
-//   alerts           Alert[]
-// }
-
-// // model District {
-// //   id                  String  @id @default(cuid())
-// //   name                String
-// //   lat                 Float
-// //   lng                 Float
-// //   supplyDaysRemaining Float   @default(30)
-// //   primaryRoadId       String
-// //   alerts              Alert[]
-// // }
-// model District {
-//   id                  String  @id @default(cuid())
-//   name                String
-//   lat                 Float
-//   lng                 Float
-//   supplyDaysRemaining Float   @default(30)
-//   drainRate           Float   @default(1)
-//   daysToStockout      Float   @default(30)
-//   primaryRoadId       String
-//   alerts              Alert[]
-// }
-
-// // model Report {
-// //   id          String   @id @default(cuid())
-// //   roadId      String
-// //   severity    Severity
-// //   description String
-// //   createdAt   DateTime @default(now())
-// //   road        Road     @relation(fields: [roadId], references: [id])
-// // }
-
-// model Report {
-//   id          String        @id @default(cuid())
-//   roadId      String
-//   severity    Severity
-//   description String
-//   status      ReportStatus  @default(PENDING)
-//   createdAt   DateTime      @default(now())
-//   road        Road          @relation(fields: [roadId], references: [id])
-// }
-
-// enum ReportStatus {
-//   PENDING
-//   APPROVED
-//   REJECTED
-// }
-
-// model Alert {
-//   id         String   @id @default(cuid())
-//   roadId     String
-//   districtId String
-//   message    String
-//   createdAt  DateTime @default(now())
-//   road       Road     @relation(fields: [roadId], references: [id])
-//   district   District @relation(fields: [districtId], references: [id])
-// }
-
-// enum Role {
-//   CITIZEN
-//   OFFICIAL
-// }
-
-// enum Status {
-//   CLEAR
-//   AT_RISK
-//   BLOCKED
-// }
-
-// enum Severity {
-//   MINOR
-//   MAJOR
-//   BLOCKED
-// }
-
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -111,21 +7,13 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// model User {
-//   id        String   @id @default(cuid())
-//   email     String   @unique
-//   password  String
-//   role      Role     @default(CITIZEN)
-//   createdAt DateTime @default(now())
-// }
-
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
   password  String
   role      Role     @default(CITIZEN)
-  name      String?
   createdAt DateTime @default(now())
+  name      String?
   reports   Report[]
 }
 
@@ -139,8 +27,8 @@ model Road {
   alternateRouteId String?
   reroutingActive  Boolean  @default(false)
   geometry         Json
-  reports          Report[]
   alerts           Alert[]
+  reports          Report[]
 }
 
 model District {
@@ -155,43 +43,17 @@ model District {
   alerts              Alert[]
 }
 
-// model Report {
-//   id          String        @id @default(cuid())
-//   roadId      String
-//   severity    Severity
-//   description String
-//   status      ReportStatus  @default(PENDING)
-//   createdAt   DateTime      @default(now())
-//   road        Road          @relation(fields: [roadId], references: [id])
-// }
-
-// model Report {
-//   id          String        @id @default(cuid())
-//   roadId      String
-//   severity    Severity
-//   description String
-//   imageUrl    String?
-//   status      ReportStatus  @default(PENDING)
-//   createdAt   DateTime      @default(now())
-//   road        Road          @relation(fields: [roadId], references: [id])
-// }
 model Report {
-  id          String        @id @default(cuid())
+  id          String       @id @default(cuid())
   roadId      String
-  userId      String?
   severity    Severity
   description String
+  status      ReportStatus @default(PENDING)
+  createdAt   DateTime     @default(now())
   imageUrl    String?
-  status      ReportStatus  @default(PENDING)
-  createdAt   DateTime      @default(now())
-  road        Road          @relation(fields: [roadId], references: [id])
-  user        User?         @relation(fields: [userId], references: [id])
-}
-
-enum ReportStatus {
-  PENDING
-  APPROVED
-  REJECTED
+  userId      String?
+  road        Road         @relation(fields: [roadId], references: [id])
+  user        User?        @relation(fields: [userId], references: [id])
 }
 
 model Alert {
@@ -200,8 +62,14 @@ model Alert {
   districtId String
   message    String
   createdAt  DateTime @default(now())
-  road       Road     @relation(fields: [roadId], references: [id])
   district   District @relation(fields: [districtId], references: [id])
+  road       Road     @relation(fields: [roadId], references: [id])
+}
+
+enum ReportStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum Role {
